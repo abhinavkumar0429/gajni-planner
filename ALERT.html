@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #2e2a4a; 
+            font-family: "Times New Roman", Times, serif;
+            color: #FFFFFF;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;    
+            justify-content: center; 
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 30px;
+            color: #cccccc;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        /* The Button Style */
+        .button-group a {
+            color: #da70d6; 
+            text-decoration: none;
+            font-weight: bold;
+            padding: 12px 25px;
+            border: 2px solid #da70d6; 
+            border-radius: 30px;
+            font-size: 18px;
+            transition: 0.3s; /* Smooths the transition of the glow */
+        }
+
+        /* The Glowing Effect */
+        .button-group a:hover {
+            background-color: #da70d6;
+            color: white;
+            /* This line creates the purple glow */
+            box-shadow: 0 0 20px #da70d6; 
+            /* This moves the button up slightly */
+            transform: translateY(-5px); 
+        }
+    </style>
+</head>
+<body>
+
+    <h1><b>Welcome Again! Gajni</b></h1>
+    
+    <p class="subtitle"><b>Here select what you want to do -</b></p>
+
+    <div class="button-group">
+        <a href="WP.html">Weekly Planner</a>
+        <a href="DP.html">Daily Planner</a>
+        <a href="Gym.html">Gym Tracker</a>
+    </div>
+
+</body>
+</html>

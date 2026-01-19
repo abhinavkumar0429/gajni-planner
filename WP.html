@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #2e2a4a; 
+            font-family: "Times New Roman", Times, serif;
+            color: #FFFFFF;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;    
+            padding-top: 80px;
+            min-height: 100vh;
+        }
+
+        .top-nav {
+            position: fixed; top: 20px; right: 20px;
+            display: flex; gap: 10px; z-index: 1000;
+        }
+
+        .btn {
+            color: #da70d6; text-decoration: none; font-weight: bold;
+            padding: 8px 15px; border: 2px solid #da70d6; 
+            border-radius: 30px; font-size: 13px; transition: 0.3s;
+            background: rgba(46, 42, 74, 0.9); cursor: pointer;
+        }
+
+        .btn:hover { background-color: #da70d6; color: white; box-shadow: 0 0 15px #da70d6; }
+
+        #back-live-btn { border-color: #00ffcc; color: #00ffcc; display: none; }
+        #back-live-btn:hover { background-color: #00ffcc; color: #2e2a4a; box-shadow: 0 0 15px #00ffcc; }
+
+        .planner-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; width: 90%; max-width: 1100px; margin-bottom: 40px;
+        }
+
+        .day-box { background: rgba(255, 255, 255, 0.05); border: 1px solid #da70d6; border-radius: 12px; padding: 10px; }
+        .day-label { display: block; color: #da70d6; font-weight: bold; margin-bottom: 5px; text-align: center; }
+
+        textarea {
+            width: 100%; height: 100px; background: transparent; border: none;
+            color: white; font-family: serif; font-size: 15px; resize: none; outline: none;
+        }
+
+        /* History Section */
+        #history-section { width: 90%; max-width: 1100px; border-top: 1px solid #da70d6; padding-top: 20px; text-align: center; }
+        
+        .history-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px; }
+
+        .history-item { 
+            display: flex; align-items: center; 
+            background: rgba(218, 112, 214, 0.2); border-radius: 15px; 
+            overflow: hidden; border: 1px solid transparent; transition: 0.3s;
+        }
+
+        .history-text { padding: 5px 15px; cursor: pointer; font-size: 13px; }
+        .history-text:hover { background: rgba(218, 112, 214, 0.3); }
+
+        .delete-single { 
+            background: rgba(255, 0, 0, 0.3); color: white; padding: 5px 10px; 
+            cursor: pointer; font-weight: bold; border: none;
+        }
+        .delete-single:hover { background: red; }
+
+        .clear-all-btn {
+            margin-top: 20px; color: #ff4d4d; border: 1px solid #ff4d4d;
+            background: transparent; padding: 5px 15px; border-radius: 20px;
+            cursor: pointer; font-size: 12px; transition: 0.3s;
+        }
+        .clear-all-btn:hover { background: #ff4d4d; color: white; }
+        
+        .status-msg { color: #da70d6; font-style: italic; margin-bottom: 10px; height: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <button id="back-live-btn" class="btn" onclick="loadCurrent()">← Back to Current</button>
+        <button class="btn" onclick="archiveWeek()">Archive & New Week</button>
+        <a href="ALERT.html" class="btn">Home</a>
+    </div>
+
+    <h1>Weekly Planner</h1>
+    <div id="status" class="status-msg">Editing Current Week</div>
+
+    <div class="planner-grid">
+        <div class="day-box"><span class="day-label">Mon</span><textarea id="mon" oninput="saveCurrent()"></textarea></div>
+        <div class="day-box"><span class="day-label">Tue</span><textarea id="tue" oninput="saveCurrent()"></textarea></div>
+        <div class="day-box"><span class="day-label">Wed</span><textarea id="wed" oninput="saveCurrent()"></textarea></div>
+        <div class="day-box"><span class="day-label">Thu</span><textarea id="thu" oninput="saveCurrent()"></textarea></div>
+        <div class="day-box"><span class="day-label">Fri</span><textarea id="fri" oninput="saveCurrent()"></textarea></div>
+        <div class="day-box"><span class="day-label">Sat</span><textarea id="sat" oninput="saveCurrent()"></textarea></div>
+        <div class="day-box"><span class="day-label">Sun</span><textarea id="sun" oninput="saveCurrent()"></textarea></div>
+    </div>
+
+    <div id="history-section">
+        <h3>Previous Weeks (History)</h3>
+        <div id="history-list" class="history-container"></div>
+        <button class="clear-all-btn" onclick="clearAllHistory()">Permanently Delete All History</button>
+    </div>
+
+    <script>
+        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        let isViewingHistory = false;
+
+        function saveCurrent() {
+            if (isViewingHistory) return;
+            const currentData = {};
+            days.forEach(day => currentData[day] = document.getElementById(day).value);
+            localStorage.setItem('gajni_current_week', JSON.stringify(currentData));
+        }
+
+        function loadCurrent() {
+            isViewingHistory = false;
+            document.getElementById('back-live-btn').style.display = 'none';
+            document.getElementById('status').innerText = "Editing Current Week";
+            document.getElementById('status').style.color = "#da70d6";
+            
+            const saved = JSON.parse(localStorage.getItem('gajni_current_week'));
+            days.forEach(day => {
+                document.getElementById(day).value = saved ? (saved[day] || '') : '';
+                document.getElementById(day).readOnly = false;
+            });
+            renderHistory();
+        }
+
+        function archiveWeek() {
+            const currentData = JSON.parse(localStorage.getItem('gajni_current_week'));
+            if (!currentData || Object.values(currentData).every(v => v === "")) return;
+
+            const timestamp = new Date().toLocaleString();
+            const history = JSON.parse(localStorage.getItem('gajni_history')) || [];
+            
+            history.push({ date: timestamp, data: currentData });
+            localStorage.setItem('gajni_history', JSON.stringify(history));
+            
+            localStorage.setItem('gajni_current_week', JSON.stringify({}));
+            loadCurrent(); 
+        }
+
+        function deleteSingle(index) {
+            if(confirm("Delete this specific week?")) {
+                let history = JSON.parse(localStorage.getItem('gajni_history')) || [];
+                history.splice(index, 1);
+                localStorage.setItem('gajni_history', JSON.stringify(history));
+                renderHistory();
+            }
+        }
+
+        function clearAllHistory() {
+            if(confirm("DANGER: This will delete ALL saved history permanently. Proceed?")) {
+                localStorage.removeItem('gajni_history');
+                renderHistory();
+            }
+        }
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem('gajni_history')) || [];
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            
+            history.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                
+                div.innerHTML = `
+                    <div class="history-text" onclick='showHistoryItem(${JSON.stringify(item)})'>Week: ${item.date}</div>
+                    <button class="delete-single" onclick="deleteSingle(${index})">×</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function showHistoryItem(item) {
+            isViewingHistory = true;
+            document.getElementById('back-live-btn').style.display = 'block';
+            document.getElementById('status').innerText = "Viewing History: " + item.date;
+            document.getElementById('status').style.color = "#00ffcc";
+
+            days.forEach(day => {
+                document.getElementById(day).value = item.data[day];
+                document.getElementById(day).readOnly = true;
+            });
+        }
+
+        loadCurrent();
+    </script>
+</body>
+</html>
